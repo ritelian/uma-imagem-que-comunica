@@ -23,3 +23,21 @@ Sem rastreio, formulários, contas ou transmissão de respostas. A lista é guar
 ## Abertura com campanhas reais
 
 A abertura permite ampliar três cartazes históricos autênticos, consultar a análise visual e abrir a fonte institucional. Os cartões respondem ao rato, ao toque e ao teclado. A janela fecha com o botão Fechar ou Escape; o foco regressa ao cartaz. Créditos, contexto e origem dos ficheiros em `CAMPAIGN-SOURCES.md`.
+
+## Comunicação e apresentação em sala
+
+A secção `#comunicar` acrescenta seis perguntas de briefing, com respostas e explicações visuais para uma campanha de sensibilização e um evento fictício. Os dois estudos vetoriais originais estão em `assets/posters/`. O exemplo de evento tem data/local fictícios, explicitamente identificados, e não define o calendário da tarefa.
+
+- Perguntas e tipos de cartaz funcionam por rato, toque e teclado.
+- «Ecrã inteiro» amplia a oficina; nesse modo, as setas esquerda/direita mudam a pergunta. Escape sai do ecrã inteiro.
+- O teste de cinco segundos esconde o cartaz e permite voltar a vê-lo. Fechar a janela cancela o temporizador.
+- «Pausar movimento» suspende os efeitos e guarda a preferência localmente. A redução de movimento do sistema é respeitada.
+- O guião direto `assets/guiao-cartaz.pdf` tem sete páginas, inclui os dois cartazes, o briefing, o enunciado e a entrega. A impressão da página também inclui a nova secção e ambos os exemplos.
+
+### Atualizar o PDF
+
+Editar `scripts/guide.html` e executar `node scripts/build-guide.cjs` com Playwright disponível. O script usa Chrome local; `CHROME_PATH` permite indicar outro executável Chromium. O site publicado continua estático e não exige instalação nem build para funcionar. O guião é paginado de forma independente para evitar cortes na impressão.
+
+### Verificação desta atualização
+
+Conferidos: versão desktop e largura de 375 px; alternância entre causa/evento; respostas às perguntas; ecrã inteiro e navegação por setas; temporizador, ocultação e revelação do cartaz; pausa persistente do movimento; ausência de erros JavaScript; sete páginas do PDF renderizadas e revistas.

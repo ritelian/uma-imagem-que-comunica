@@ -21,7 +21,7 @@ function updateProgress(){const count=checks.filter(c=>c.checked).length;documen
 updateProgress();document.querySelector('#reset').addEventListener('click',()=>{checks.forEach(c=>c.checked=false);updateProgress();});document.querySelector('#print').addEventListener('click',()=>window.print());
 const reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
 const campaignCards=[...document.querySelectorAll('[data-campaign]')];let ticking=false;
-function moveArt(){campaignCards.forEach((card,i)=>card.style.setProperty('--drift',reduce.matches?'0px':`${Math.min(window.scrollY,850)*[.035,-.045,.06][i]}px`));ticking=false;}
+function moveArt(){campaignCards.forEach((card,i)=>card.style.setProperty('--drift',(reduce.matches||document.body.classList.contains('motion-paused'))?'0px':`${Math.min(window.scrollY,850)*[.035,-.045,.06][i]}px`));ticking=false;}
 window.addEventListener('scroll',()=>{if(!ticking){requestAnimationFrame(moveArt);ticking=true;}},{passive:true});reduce.addEventListener('change',moveArt);
 const campaigns={
  trees:{image:'assets/campanha-arvores.jpg',alt:'Uma folha em azul e preto ocupa a parte superior do cartaz Spare Our Trees.',title:'Spare Our Trees',meta:'STANLEY THOMAS CLOUGH · 1938',context:'Cartaz de conservação das árvores, produzido pelo Federal Art Project / WPA, no Ohio. Fonte: Library of Congress.',message:'«Preservem as nossas árvores.» Uma única folha representa uma causa maior: a proteção das árvores.',analysis:'A folha domina pela escala. As cores reduzidas e o fundo claro tornam a silhueta legível. O texto, isolado na parte inferior, fecha a leitura sem disputar espaço com a imagem.',question:'Se em vez desta folha houvesse vinte árvores pequenas, o impacto seria o mesmo?',source:'https://www.loc.gov/item/98517129/'},
@@ -33,3 +33,73 @@ campaignCards.forEach(card=>card.addEventListener('click',()=>{const c=campaigns
 document.querySelector('.close-dialog').addEventListener('click',()=>campaignDialog.close());
 campaignDialog.addEventListener('click',e=>{if(e.target===campaignDialog){const r=campaignDialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)campaignDialog.close();}});
 campaignDialog.addEventListener('close',()=>{document.body.style.overflow='';openedBy?.focus({preventScroll:true});});
+
+// Briefing: each question has an answer and a visual explanation for both posters.
+const communicationAnswers={
+ cause:[
+ ['Poupança de água nos gestos do dia a dia.','A gota e a planta associam água e vida. A imagem torna o tema reconhecível.'],
+ ['Pessoas que usam água todos os dias, incluindo a comunidade escolar.','A imagem simples e as palavras familiares tornam o apelo acessível a diferentes idades.'],
+ ['Sensibilizar para o desperdício e incentivar um hábito mais responsável.','O contraste faz parar o olhar; a frase curta transforma a atenção num convite.'],
+ ['Cada pequeno gesto pode ajudar a poupar água.','«Cada gota conta» é a frase maior. A escala diz ao olhar o que deve ler primeiro.'],
+ ['Fechar a torneira enquanto se escovam os dentes.','O apelo em baixo propõe uma ação concreta. A pessoa sabe o que pode fazer.'],
+ ['Uma imagem que identifique a causa e um apelo claro. Não precisa de data ou local.','Há pouca informação para manter a mensagem legível. O espaço livre também comunica.']
+ ],
+ event:[
+ ['Um concerto com as bandas da escola: Som no Pátio.','As ondas e a nota musical identificam o universo da música. O título domina a composição.'],
+ ['A comunidade escolar: alunos, professores e outras pessoas da escola.','A frase «Traz a tua turma» dirige-se aos alunos; o rodapé identifica o público do evento.'],
+ ['Divulgar o concerto e convidar a comunidade a participar.','O ritmo das linhas e as cores vivas procuram despertar curiosidade e sugerir energia.'],
+ ['Há música ao vivo no pátio da escola.','O nome «Som no Pátio» fica em grande. O texto de apoio explica que se trata de um concerto.'],
+ ['Ir ao concerto e convidar os colegas.','«Traz a tua turma. Vem ouvir!» convida à participação. Data, hora e local permitem agir.'],
+ ['22 de maio de 2026, às 18h, no pátio da escola. Entrada livre. Organização: Clube de Música. Dados fictícios.','A faixa amarela agrupa quando, onde e como participar. O rodapé identifica quem organiza.']
+ ]
+};
+const questionButtons=[...document.querySelectorAll('[data-question]')];
+const exampleButtons=[...document.querySelectorAll('[data-poster]')];
+const commPoster=document.querySelector('#communication-poster');
+let questionIndex=0, posterType='cause';
+function updateCommunication(){
+ const button=questionButtons[questionIndex], answer=communicationAnswers[posterType][questionIndex];
+ questionButtons.forEach((b,i)=>{b.classList.toggle('is-active',i===questionIndex);b.setAttribute('aria-pressed',String(i===questionIndex));});
+ exampleButtons.forEach(b=>{const active=b.dataset.poster===posterType;b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active));});
+ commPoster.src=posterType==='cause'?'assets/posters/agua.svg':'assets/posters/evento.svg';
+ commPoster.alt=posterType==='cause'?'Cada gota conta: uma gota contém uma planta. Fecha a torneira enquanto escovas os dentes.':'Som no Pátio: concerto fictício para a comunidade escolar. 22 de maio de 2026, às 18h, pátio da escola. Entrada livre. Organização: Clube de Música.';
+ document.querySelector('#communication-caption').textContent=posterType==='cause'?'Estudo didático original / campanha de sensibilização.':'Estudo didático original / evento, data e local fictícios.';
+ document.querySelector('#answer-label').textContent=button.querySelector('span').textContent;
+ document.querySelector('#answer-title').textContent=button.querySelector('strong').textContent;
+ document.querySelector('#answer-text').textContent=answer[0];
+ const explanation=document.querySelector('#answer-design');explanation.replaceChildren();const label=document.createElement('strong');label.textContent='No design: ';explanation.append(label,answer[1]);
+ document.querySelector('#question-position').textContent=`${questionIndex+1} / 6`;
+}
+questionButtons.forEach(b=>b.addEventListener('click',()=>{questionIndex=Number(b.dataset.question);updateCommunication();}));
+exampleButtons.forEach(b=>b.addEventListener('click',()=>{posterType=b.dataset.poster;updateCommunication();}));
+function nextQuestion(direction){questionIndex=(questionIndex+direction+6)%6;updateCommunication();}
+document.querySelector('#question-prev').addEventListener('click',()=>nextQuestion(-1));
+document.querySelector('#question-next').addEventListener('click',()=>nextQuestion(1));
+const workshop=document.querySelector('.comm-workshop'),presentButton=document.querySelector('#present-communication');
+if(!workshop.requestFullscreen){presentButton.hidden=true;}
+presentButton.addEventListener('click',async()=>{try{if(document.fullscreenElement){await document.exitFullscreen();}else{await workshop.requestFullscreen();}}catch{presentButton.textContent='Ecrã inteiro indisponível';}});
+document.addEventListener('fullscreenchange',()=>{presentButton.textContent=document.fullscreenElement?'Sair do ecrã inteiro ↙':'Ecrã inteiro ↗';});
+workshop.addEventListener('keydown',e=>{if(document.fullscreenElement===workshop&&!testDialog.open&&(e.key==='ArrowRight'||e.key==='ArrowLeft')){e.preventDefault();nextQuestion(e.key==='ArrowRight'?1:-1);}});
+const motionToggle=document.querySelector('#motion-toggle');let pausedMotion=false;
+try{pausedMotion=localStorage.getItem('ev-motion-paused')==='true';}catch{}
+function applyMotion(){document.body.classList.toggle('motion-paused',pausedMotion||reduce.matches);motionToggle.setAttribute('aria-pressed',String(pausedMotion||reduce.matches));motionToggle.textContent=reduce.matches?'Movimento reduzido pelo sistema':pausedMotion?'Retomar movimento':'Pausar movimento';motionToggle.disabled=reduce.matches;moveArt();moveCommunication();}
+motionToggle.addEventListener('click',()=>{pausedMotion=!pausedMotion;try{localStorage.setItem('ev-motion-paused',String(pausedMotion));}catch{}applyMotion();});
+const orbit=document.querySelector('.comm-orbit');let commTicking=false;
+function moveCommunication(){const y=document.querySelector('.comm-intro').getBoundingClientRect().top;orbit.style.setProperty('--comm-drift',reduce.matches||pausedMotion?'0px':`${Math.max(-70,Math.min(70,-y*.13))}px`);commTicking=false;}
+window.addEventListener('scroll',()=>{if(!commTicking){commTicking=true;requestAnimationFrame(moveCommunication);}},{passive:true});
+reduce.addEventListener('change',applyMotion);applyMotion();
+const testDialog=document.querySelector('#poster-test-dialog'),testImage=document.querySelector('#test-poster-image'),recall=document.querySelector('#test-recall');let testTimer=null;
+function stopPosterTimer(){if(testTimer!==null){clearInterval(testTimer);testTimer=null;}}
+function revealPoster(){stopPosterTimer();testImage.hidden=false;recall.hidden=true;document.querySelector('#test-count').textContent='';document.querySelector('#test-dialog-title').textContent='Compara com o que recordaste.';}
+document.querySelector('#start-poster-test').addEventListener('click',()=>{
+ stopPosterTimer();testImage.src=commPoster.src;testImage.alt=commPoster.alt;testImage.hidden=false;recall.hidden=true;let seconds=5;
+ document.querySelector('#test-dialog-title').textContent='Observa o cartaz.';document.querySelector('#test-count').textContent=seconds;
+ document.querySelector('#test-status').textContent='Teste em curso.';
+ testDialog.showModal();document.querySelector('#close-poster-test').focus();
+ testTimer=setInterval(()=>{seconds--;document.querySelector('#test-count').textContent=seconds;
+ if(seconds===0){stopPosterTimer();testImage.hidden=true;recall.hidden=false;document.querySelector('#test-count').textContent='';document.querySelector('#test-dialog-title').textContent='Tempo terminado. O que ficou?';document.querySelector('#test-status').textContent='Tempo terminado. Partilha o que recordas.';document.querySelector('#reveal-test-poster').focus();}
+ },1000);
+});
+document.querySelector('#close-poster-test').addEventListener('click',()=>testDialog.close());
+document.querySelector('#reveal-test-poster').addEventListener('click',revealPoster);
+testDialog.addEventListener('close',()=>{stopPosterTimer();document.querySelector('#test-status').textContent='Podes repetir o teste com o outro cartaz.';document.querySelector('#start-poster-test').focus({preventScroll:true});});
